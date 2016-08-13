@@ -55,6 +55,7 @@ BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
 	BOOST_REQUIRE_MESSAGE( test_address( "_______@domain.com" ), "Underscore in the address field is valid" );
 	BOOST_REQUIRE_MESSAGE( test_address( "email@domain.co.jp" ), "Dot in Top Level Domain name also considered valid (use co.jp as example here)" );
 	BOOST_REQUIRE_MESSAGE( test_address( "firstname-lastname@domain.com" ), "Dash in address field is valid" );
+	BOOST_REQUIRE_MESSAGE( test_address( "あいうえお@domain.com" ), "Unicode char as address" );
 	std::cout << "\n" << std::endl;
 }
 
@@ -72,7 +73,6 @@ BOOST_AUTO_TEST_CASE( bad_email_test_001 ) {
 	BOOST_REQUIRE_MESSAGE( !test_address( ".email@domain.com" ), "Leading dot in address is not allowed" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "email.@domain.com" ), "Trailing dot in address is not allowed" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "email..email@domain.com" ), "Multiple dots" );
-//	BOOST_REQUIRE_MESSAGE( !test_address( "あいうえお@domain.com" ), "Unicode char as address" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain.com (Joe Smith)" ), "Text followed email is not allowed" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain" ), "Missing top level domain (.com/.net/.org/etc)" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "email@-domain.com" ), "Leading dash in front of domain is invalid" );
