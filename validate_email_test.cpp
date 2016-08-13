@@ -56,6 +56,16 @@ BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
 	BOOST_REQUIRE_MESSAGE( test_address( "email@domain.co.jp" ), "Dot in Top Level Domain name also considered valid (use co.jp as example here)" );
 	BOOST_REQUIRE_MESSAGE( test_address( "firstname-lastname@domain.com" ), "Dash in address field is valid" );
 	BOOST_REQUIRE_MESSAGE( test_address( "あいうえお@domain.com" ), "Unicode char as address" );
+	BOOST_REQUIRE_MESSAGE( test_address( "Cheif.O'Brian@example.com" ), "Single quote" );
+	BOOST_REQUIRE_MESSAGE( test_address( "Abc@example.com" ), "normal" );
+	BOOST_REQUIRE_MESSAGE( test_address( "Abc.123@example.com" ), "dot in local part" );
+	BOOST_REQUIRE_MESSAGE( test_address( "user+mailbox/department=shipping@example.com" ), "plus and slash and equal in local" );
+	BOOST_REQUIRE_MESSAGE( test_address( "!#$%&'*+-/=?^_`.{|}~@example.com" ), "mix value symbols" );
+	BOOST_REQUIRE_MESSAGE( test_address( "\"Abc@def\"@example.com" ), "quoted" );
+	BOOST_REQUIRE_MESSAGE( test_address( "\"Fred Bloggs\"@example.com" ), "space in quotes" );
+	BOOST_REQUIRE_MESSAGE( test_address( "\"Joe.\\Blow\"@example.com" ), "backslash" );
+	BOOST_REQUIRE_MESSAGE( test_address( u8"test@快乐.中国" ), "Chinese" );
+
 	std::cout << "\n" << std::endl;
 }
 
