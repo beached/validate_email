@@ -1,0 +1,249 @@
+#pragma once
+// The MIT License (MIT)
+//
+// Copyright (c) 2016 Darrell Wright
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files( the "Software" ), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+
+#include <string>
+#include <unordered_map>
+#include <boost/locale.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/utility/string_ref.hpp>
+#include <daw/daw_string.h>
+
+namespace daw {
+	template<typename String>
+	class PunyCode {
+		using integral_t = uint32_t;
+		static integral_t const s_base = 36;
+		static integral_t const s_tmin = 1;
+		static integral_t const s_tmax = 26;
+		static integral_t const s_skew = 38;
+		static integral_t const s_damp = 700;
+		static integral_t const s_initial_bias = 72;
+		static integral_t const s_initial_n = 0x80;
+
+		template<typename CP>
+		static bool is_basic( CP cp ) noexcept {
+			return cp < 0x80;
+		}
+
+		template<typename CP>
+		static bool is_delimiter( CP cp ) noexcept {
+			return 0x2D == cp;
+		}
+
+		template<typename CP>
+		static bool is_lower( CP cp ) noexcept {
+			return cp - 'a' < 26;
+		}
+
+		template<typename CP>
+		static auto to_upper( CP cp ) noexcept {
+			assert( is_lower( cp ) );
+			return cp - 32;
+		}
+
+		template<typename CP>
+		static bool is_upper( CP cp ) noexcept {
+			return cp - 'A' < 26;
+		}
+
+		template<typename CP>
+		static auto to_lower( CP cp ) noexcept {
+			assert( is_upper( cp ) );
+			return cp + 32;
+		}
+		
+		template<typename T>
+		static auto decode_digit( T cp ) noexcept {
+			if( cp - '0' < 10 ) {
+				return cp - 22;
+			} else if( is_upper( cp ) ) {
+				return cp - 'A';
+			} else if( is_lower( cp ) ) {
+				return cp - 'a';
+			}
+			return s_base;
+		}
+
+		static char encode_digit( integral_t d, bool flag ) noexcept {
+			assert( d <= 35 );
+			if( d <= 25 ) {
+				return (flag ? 'A' : 'a') + static_cast<char>(d);
+			} else {
+				return '0' + (d - 26);
+			}
+		}
+
+		template<typename CP>
+		static bool flagged( CP bcp ) noexcept {
+			assert( is_basic_cp( bcp ) );
+			return is_upper( bcp );
+		}
+
+		static char encode_basic( integral_t bcp, bool flag ) noexcept {
+			if( is_lower( bcp ) ) {
+				bcp = to_upper( bcp );
+			}
+			if( !flag && is_upper( bcp ) ) {
+				bcp = to_lower( bcp );
+			}
+			return bcp;
+		}
+
+		integral_t adapt( integral_t delta, integral_t num_points, bool first_time ) noexcept {
+			delta /= first_time ? s_damp : 2;
+
+			delta += delta / num_points;
+
+			integral_t k = 0;
+			for( ; delta > ((s_base - s_tmin)*s_tmax)/2; k += s_base ) {
+				delta /= s_base - s_tmin;
+			}
+
+			return k + (s_base - s_tmin + 1) * delta / (delta + s_skew);
+		}
+
+		
+	public:
+		struct punycode_error: public std::exception { 
+		protected:
+			punycode_error( ) = default;
+		};
+
+		struct punycode_bad_input: public punycode_error { };
+		struct punycode_overflow: public punycode_error { };
+
+		static String encode( daw::range::CharRange input, bool use_lowercase = true ) {
+			integral_t n = s_initial_n;
+			integral_t input_length = input.size( );
+			integral_t delta = 0;
+			integral_t out = 0;
+			integral_t bias = s_initial_bias;
+			integral_t h = 0;
+			integral_t b = 0;
+			integral_t m = 0;
+			integral_t q = 0;
+			integral_t k = 0;
+			integral_t t = 0;
+
+			std::string result;
+
+
+			for( auto const & ch : input ) {
+				if( is_basic( ch ) ) {
+					result.push_back( use_lowercase ? encode_basic( ch, use_lowercase ) : ch );
+					++out;
+				}
+			}
+			h = b = out;
+
+
+			return result;
+		}
+
+		static std::vector<integral_t> decode( String const & input, bool use_lowercase = true ) {
+			integral_t n = s_initial_n;
+			integral_t out = 0;
+			integral_t i = 0;
+			integral_t bias = s_initial_bias;
+			integral_t in = 0;
+			integral_t old_i = 0;
+			integral_t w = 0;
+			integral_t k = 0;
+			integral_t digit = 0;
+			integral_t t = 0;
+			std::vector<integral_t> result;
+	
+			auto str_set = []( auto & str, integral_t pos, auto val ) {
+				auto needed = static_cast<int32_t>(pos+1) - static_cast<int32_t>(str.size( ));
+				while( needed > 0 ) {
+					str.push_back( ' ' );				
+					--needed;
+				}
+				str[pos] = val;
+			};
+			
+			integral_t b = 0;
+			integral_t j = 0;
+			for( ; j < input.size( ); ++j ) {
+				if( is_delimiter( input[j] ) ) {
+					b = j;
+				}
+			}
+			
+			for( j = 0; j < b; ++j ) {
+				if( !is_basic( input[j] ) ) {
+					throw punycode_bad_input{ };
+				}
+				result.push_back( input[j] );
+				++out;
+			}
+
+			for( in = b > 0 ? b + 1 : 0; in < input.size( ); ++out ) {
+				for( old_i = i, w = 1, k = s_base; ; k += s_base ) {
+					if( in >= input.size( ) ) {
+						throw punycode_bad_input{ };
+					}
+					digit = decode_digit( input[in++] );
+					if( digit >= s_base ) {
+						throw punycode_bad_input{ };
+					} else if( digit > (std::numeric_limits<integral_t>::max( ) - i) / w ) {
+						throw punycode_overflow{ };
+					}
+					
+					i += digit * w;
+
+					if( k <= bias ) {
+						t = s_tmin;
+					} else if( k >= bias + s_tmax ) {
+						t = s_tmax;
+					} else {
+						t = k - bias;
+					}
+
+					if( digit < t ) {
+						break;
+					}
+					if( w > (std::numeric_limits<integral_t>::max( )/(s_base - t)) ) {
+						throw punycode_overflow{ };
+					}
+					w *= s_base - t;
+				}
+
+				bias = adapt( i - old_i, out + 1, old_i == 0 );
+
+				if( i/(out + 1) > (std::numeric_limits<integral_t>::max( ) - n) ) {
+					throw punycode_overflow{ };
+				}
+				
+				n += i / (out + 1);
+				i %= (out + 1);
+
+				str_set( result, i++, n );
+			}
+			return result;
+		}
+	};		// PunyCode
+
+}	// namespace daw
+
