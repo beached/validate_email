@@ -51,7 +51,6 @@ namespace daw {
 			io_service io_service;
 			ip::tcp::resolver resolver{ io_service };
 			auto str_puny = daw::to_puny_code( std::string( rng.raw_begin( ), rng.raw_end( ) ) );
-			std::cout << "puny: " << str_puny << "\n";
 			ip::tcp::resolver::query query{ str_puny, "" };
 			boost::system::error_code ec;
 			auto result = resolver.resolve( query, ec );

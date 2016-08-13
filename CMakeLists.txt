@@ -1,11 +1,13 @@
 cmake_minimum_required( VERSION 2.8.12 )
 
-project( parse_template_prj )
+project( validate_email_prj )
 
 include( ExternalProject )
 
 find_package( Boost 1.58.0 COMPONENTS system filesystem regex unit_test_framework REQUIRED )
 find_package( Threads )
+
+add_definitions( -DBOOST_TEST_DYN_LINK ) 
 
 if( ${CMAKE_CXX_COMPILER_ID} STREQUAL 'MSVC' )
 	add_compile_options( -D_WIN32_WINNT=0x0601 ) 
@@ -45,7 +47,6 @@ set( HEADER_FILES
 set( SOURCE_FILES
 	punycode.cpp
 	validate_email.cpp
-	main.cpp
  )
 
 include_directories( SYSTEM "${CMAKE_BINARY_DIR}/install/include" )
@@ -54,7 +55,13 @@ link_directories( "${CMAKE_BINARY_DIR}/install/lib" )
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
-add_executable( validate_email ${HEADER_FILES} ${SOURCE_FILES} )
+add_library( validate_email STATIC ${HEADER_FILES} ${SOURCE_FILES} )
 add_dependencies( validate_email header_libraries_prj char_range_prj )
-target_link_libraries( validate_email char_range ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( validate_email char_range ${Boost_LIBRARIES} )
+
+
+add_executable( validate_email_test_bin validate_email_test.cpp ${HEADER_FILES} )
+add_dependencies( validate_email_test_bin validate_email )
+target_link_libraries( validate_email_test_bin validate_email char_range ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+add_test( validate_email_test, validate_email_test_bin )
 
