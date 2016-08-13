@@ -62,7 +62,6 @@ BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
 BOOST_AUTO_TEST_CASE( bad_email_test_001 ) {
 	std::cout << "Bad email addresses\n";
 	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain..com" ), "Double dot in domain" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "#@%^%#$@#$@#.com" ), "Garbage" );
 	BOOST_REQUIRE_MESSAGE( !test_address( u8"test@افغانستا.icom.museum" ), "Non-Existant IDN Domain test" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "plainaddress" ), "Missing @ sign and domain" );
 	BOOST_REQUIRE_MESSAGE( !test_address( "#@%^%#$@#$@#.com" ), "Garbage" );
