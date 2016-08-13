@@ -36,35 +36,19 @@ bool test_address( boost::string_ref address ) {
 
 
 BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
+	std::cout << "Good email addresses\n";
 	BOOST_REQUIRE_MESSAGE( test_address( "test@example.com" ), "Good 001. Basic test" );
-}
-
-BOOST_AUTO_TEST_CASE( good_email_test_002 ) {
 	BOOST_REQUIRE_MESSAGE( test_address( u8"test@Bücher.ch" ), "Good 002. Valid IDN domain" );
-}
-
-BOOST_AUTO_TEST_CASE( good_email_test_003 ) {
 	BOOST_REQUIRE_MESSAGE( test_address( u8"\"@ test\"@Bücher.ch" ), "Good 003. Quotes, @, and space in local plus IDN test" );
-}
-
-BOOST_AUTO_TEST_CASE( good_email_test_004 ) {
 	BOOST_REQUIRE_MESSAGE( test_address( "test@[127.0.0.1]" ), "Good 004. Bracketed ip addrress" );
-}
-
-BOOST_AUTO_TEST_CASE( good_email_test_005 ) {
 	BOOST_REQUIRE_MESSAGE( test_address( "test@127.0.0.1" ), "Good 005. ip addrress" );
+	BOOST_REQUIRE_MESSAGE( test_address( "test@8.8.8.8" ), "Good 006. ip addrress" );
 }
 
 BOOST_AUTO_TEST_CASE( bad_email_test_001 ) {
+	std::cout << "Bad email addresses\n";
 	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain..com" ), "Bad 001. Double dot in domain" );
-}
-
-BOOST_AUTO_TEST_CASE( bad_email_test_002 ) {
 	BOOST_REQUIRE_MESSAGE( !test_address( "#@%^%#$@#$@#.com" ), "Bad 002. Garbage" );
-}
-
-BOOST_AUTO_TEST_CASE( bad_email_test_003 ) {
 	BOOST_REQUIRE_MESSAGE( !test_address( u8"test@افغانستا.icom.museum" ), "Bad 003. Non-Existant IDN Domain test" );
 }
-
 
