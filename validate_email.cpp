@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 #include <cstdint>
+#include <daw/daw_algorithm.h>
 #include <daw/char_range/daw_char_range.h>
 #include <future>
 #include <thread>
@@ -31,6 +32,7 @@
 
 namespace daw {
 	namespace {
+
 		auto is_local( daw::range::CharRange rng ) {
 			// These are the only invalid characters.  Beyond this
 			// the MTA has authority over whether it is valid or not
@@ -38,10 +40,9 @@ namespace daw {
 			if( rng.size( ) > 64 ) {
 				return false;
 			}
-			for( auto c: rng ) {
-				if( 31 >= c || 127 == c ) {
-					return false;
-				}
+			using namespace daw::algorithm;
+			if( satisfies_one( rng.begin( ), rng.end( ), in_range( 0, 31 ), equal_to( 127 ) ) ) {
+				return false;
 			}
 			return true;
 		}
@@ -86,8 +87,9 @@ namespace daw {
 		if( result.front( ) == '[' && result.back( ) == ']' ) {
 			result = result.substr( 1, result.size( ) - 2 );
 			// [127.0.0.1] is a valid domain, bracketed ip. 
+			using namespace daw::algorithm;
 			for( auto const & c: result ) {
-				if( !(( c >= '0' && c <= '9') || c == '.' ) ) {
+				if( !satisfies_one( c, in_range( '0', '9' ), equal_to( '.' ) ) ) {
 					return "";
 				}
 			}
