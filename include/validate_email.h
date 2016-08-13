@@ -22,10 +22,11 @@
 // SOFTWARE.
 //
 
-#include <daw/char_range/daw_char_range.h>
 #include <boost/utility/string_ref.hpp>
 
 namespace daw {
-	bool is_email_address( daw::range::CharRange email_address );
 	bool is_email_address( boost::string_ref email_address );
+	boost::string_ref get_local_part( boost::string_ref email_address ) noexcept;
+	boost::string_ref get_domain_part( boost::string_ref email_address ) noexcept; 
 }	// namespace daw
+

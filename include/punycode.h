@@ -22,6 +22,7 @@
 // SOFTWARE.
 //
 
+#include <string>
 #include <boost/utility/string_ref.hpp>
 
 namespace daw {

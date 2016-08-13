@@ -69,25 +69,52 @@ namespace daw {
 		}
 	}	// namespace anonymous
 
-	bool is_email_address( daw::range::CharRange email_address ) {
-		auto amp_pos = find_last( email_address.begin( ), email_address.end( ), static_cast<uint8_t>('@') );
-		if( amp_pos == email_address.end( ) ) {
-			return false;
+	boost::string_ref get_local_part( boost::string_ref email_address ) noexcept {
+		auto amp_pos = email_address.find_last_of( '@' );
+		if( boost::string_ref::npos == amp_pos ) {
+			return "";
 		}
-		if( email_address.size( ) > 255 ) {
-			return false;
-		}
-		auto local_str = email_address.copy( ).set_end( amp_pos );
-		auto domain_str = email_address.copy( ).set_begin( std::next( amp_pos ) );
-		auto domain_good = std::async( std::launch::async, [domain_str]( ) {
-			return can_resolve( domain_str );
-		} );
+		return email_address.substr( 0, amp_pos );
+	}
 
-		return is_local( local_str ) && domain_good.get( );
+	boost::string_ref get_domain_part( boost::string_ref email_address ) noexcept {
+		auto amp_pos = email_address.find_last_of( '@' );
+		if( boost::string_ref::npos == amp_pos ) {
+			return "";
+		}
+		auto result = email_address.substr( amp_pos + 1 );
+		if( result.front( ) == '[' && result.back( ) == ']' ) {
+			result = result.substr( 1, result.size( ) - 2 );
+			// [127.0.0.1] is a valid domain, bracketed ip. 
+			for( auto const & c: result ) {
+				if( !(( c >= '0' && c <= '9') || c == '.' ) ) {
+					return "";
+				}
+			}
+		}
+		return result;
 	}
 
 	bool is_email_address( boost::string_ref email_address ) {
-		return is_email_address( daw::range::create_char_range( email_address.begin( ), email_address.end( ) ) );
+		auto local_str = get_local_part( email_address );
+		if( local_str.empty( ) ) {
+			return false;
+		}
+		auto domain_str = get_domain_part( email_address );
+		if( domain_str.empty( ) ) {
+			return false;
+		}
+		if( daw::range::create_char_range( email_address.begin( ), email_address.end( ) ).size( ) > 255 ) {
+			return false;
+		}
+		auto u_local_str = daw::range::create_char_range( local_str.begin( ), local_str.end( ) );
+		auto u_domain_str = daw::range::create_char_range( domain_str.begin( ), domain_str.end( ) );
+
+		auto domain_good = std::async( std::launch::async, [u_domain_str]( ) {
+			return can_resolve( u_domain_str );
+		} );
+
+		return is_local( u_local_str ) && domain_good.get( );
 	}
 }	// namespace daw
 
