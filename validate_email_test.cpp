@@ -26,7 +26,6 @@
 #include <iostream>
 
 #include <daw/json/daw_json_link.h>
-#include <daw/daw_memory_mapped_file.h>
 
 #include "validate_email.h"
 #include "punycode.h"
@@ -56,17 +55,6 @@ struct config_file_t: public daw::json::JsonLink<config_file_t> {
 	}
 };	// config_file_t
 
-template<typename T>
-auto from_file( boost::string_ref filename ) {
-	daw::filesystem::MemoryMappedFile<char> test_data( filename );
-
-	T result;
-
-	result.decode( test_data.begin( ), test_data.end( ) );
-
-	return result;
-}
-
 bool test_address( boost::string_ref address ) {
 	std::cout << "Testing: " << address.data( );
 	std::cout << " Puny: " << daw::get_local_part( address ) << "@" << daw::to_puny_code( daw::get_domain_part( address ) ) << std::endl;
@@ -76,7 +64,8 @@ bool test_address( boost::string_ref address ) {
 
 BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
 	std::cout << "Good email addresses\n";
-	for( auto const & address : from_file<config_file_t>( "../good_addresses.json" ).tests ) {
+	auto config_data = config_file_t{ }.decode_file( "../good_addresses.json" );
+	for( auto const & address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( test_address( address.email_address ), address.comment );
 	}
 	std::cout << "\n" << std::endl;
@@ -84,7 +73,8 @@ BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
 
 BOOST_AUTO_TEST_CASE( bad_email_test_001 ) {
 	std::cout << "Bad email addresses\n";
-	for( auto const & address : from_file<config_file_t>( "../bad_addresses.json" ).tests ) {
+	auto config_data = config_file_t{ }.decode_file( "../bad_addresses.json" );
+	for( auto const & address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( !test_address( address.email_address ), address.comment );
 	}
 	std::cout << "\n" << std::endl;
