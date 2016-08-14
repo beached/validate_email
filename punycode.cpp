@@ -179,20 +179,20 @@ namespace daw {
 			}
 			return constants::PREFIX + output;
 		}
-	}    // namespace anonymous
 
-	template<typename Delemiter>
-	std::vector<boost::string_ref> split( boost::string_ref input, Delemiter delemiter ) {
-		std::vector<boost::string_ref> result;
-		auto pos = input.find_first_of( delemiter );
-		while( !input.empty( ) && boost::string_ref::npos != pos ) {
-			result.emplace_back( input.data( ), pos );
-			input = input.substr( pos + 1, boost::string_ref::npos );
-			pos = input.find_first_of( delemiter );
+		template<typename Delemiter>
+		std::vector<boost::string_ref> split( boost::string_ref input, Delemiter delemiter ) {
+			std::vector<boost::string_ref> result;
+			auto pos = input.find_first_of( delemiter );
+			while( !input.empty( ) && boost::string_ref::npos != pos ) {
+				result.emplace_back( input.data( ), pos );
+				input = input.substr( pos + 1, boost::string_ref::npos );
+				pos = input.find_first_of( delemiter );
+			}
+			result.push_back( input );
+			return result;
 		}
-		result.push_back( input );
-		return result;
-	}
+	}    // namespace anonymous
 
 	std::string to_puny_code( boost::string_ref input ) {
 		std::stringstream ss;
