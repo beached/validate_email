@@ -56,12 +56,31 @@ namespace daw {
 				prev = c;
 				return init;
 			} );
+			
+			auto begins_with = []( daw::range::CharRange const & chr_rng, char value ) {
+				return *chr_rng.raw_begin( ) == value;	
+			};
+
+			auto ends_with = []( daw::range::CharRange const & chr_rng, char value ) {
+				return *(chr_rng.raw_end( ) - 1) == value;	
+			};
+
 			if( quote_count != 0 ) {
 				if( quote_count != 2 ) {
 					return false;
 				}
-				if( *rng.raw_begin( ) != '\"' || *(rng.raw_end( ) - 1) != '\"' ) {
+				if( !(begins_with( rng, '\"' ) && ends_with( rng, '\"' )) ) {
 					return false;
+				}
+
+			} else {
+				if( begins_with( rng, '.' ) || ends_with( rng, '.' ) ) {
+					return false;
+				}
+				for( auto c: rng ) {
+					if( c == U'@' ) {
+						return false;
+					}
 				}
 			}
 			return true;
