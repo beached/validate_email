@@ -62,7 +62,7 @@ auto from_file( boost::string_ref filename ) {
 
 	T result;
 
-	result.decode( boost::string_ref( test_data.data( ), test_data.size( ) ) );
+	result.decode( test_data.begin( ), test_data.end( ) );
 
 	return result;
 }
