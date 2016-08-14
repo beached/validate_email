@@ -41,58 +41,38 @@ namespace daw {
 			static char const DELIMITER = '-';
 		};	// constants
 
-		struct processed_cp_t {
-			std::vector<uint32_t> all;
-			std::vector<uint32_t> basic;
-			std::vector<uint32_t> non_basic;
-		};	// processed_cp_t
-		
 		template<typename CP>
 		auto to_lower( CP cp ) {
 			return cp | 32;
 		}
 
-		processed_cp_t process_cp( daw::range::CharRange input ) {
-			processed_cp_t result{ };
-			for( auto cp : input ) {
-				if( cp < 128 ) {
-					cp = to_lower( cp );
-					result.all.push_back( cp );
-					result.basic.push_back( cp );
-				} else {
-					result.all.push_back( cp );
-					result.non_basic.push_back( cp );
-				}
+		template<typename T, typename U>
+		auto adapt( T delta, U n_points, bool is_first ) {
+			// scale back, then increase delta
+			delta /= is_first ? constants::DAMP : 2;
+			delta += delta / n_points;
+
+			auto const s = constants::BASE - constants::TMIN;
+			auto const t = (s * constants::TMAX)/2;
+
+			uint32_t k = 0;
+			for( ; delta > t; k += constants::BASE ) {
+				delta /= s;
 			}
-			return result;
+
+			auto const a = (constants::BASE - constants::TMIN + 1) * delta;
+			auto const b = (delta + constants::SKEW);
+
+			return k + (a / b);
 		}
 
-		template<typename T>
-		auto adapt( T delta, size_t num_points, bool first_time ) {
-			if( first_time ) {
-				delta /= constants::DAMP;
-			} else {
-				delta /= 2;
-			}
-			delta += delta/num_points;
-
-			T k = 0;
-			while( delta > ((constants::BASE - constants::TMIN)* constants::TMAX) / 2 ) {
-				delta /= constants::BASE - constants::TMIN;
-				k += constants::BASE;
-			}
-
-			k += ((constants::BASE - constants::TMIN + 1	) * delta) / (delta + constants::SKEW);
-
-			return k;
-		}
 
 		template<typename Iterator>
 		auto sort_uniq( Iterator first, Iterator last ) {
 			using value_type = std::decay_t<decltype(*first)>;
 			std::vector<value_type> result;
 			std::copy( first, last, std::back_inserter( result ) );
-			std::sort( result.begin( ), result.end( ) );
+			std::sort( result.begin( ), result.end( ), std::greater<value_type>( ) );
 			auto new_end = std::unique( result.begin( ), result.end( ) );
 			result.erase( new_end, result.end( ) );
 			return result;
@@ -118,66 +98,86 @@ namespace daw {
 			throw std::runtime_error( "Invalid character to encode" );
 		}
 
+		template<typename T>
+		auto encode_digit( T d ) {
+			if( d < 26 ) {
+				return d + 97;
+			}
+			return d + 22;
+		}
+
+		template<typename T, typename U>
+		auto encode_int( T bias, U delta ) {
+			std::string result;
+		
+			auto k = constants::BASE;
+			auto q = delta;
+
+			while( true ) {
+				auto t = calculate_threshold( k, bias );
+				if( q < t ) {
+					result += encode_digit( q );
+					break;
+				} else {
+					result += encode_digit( t + ((q - t) % (constants::BASE - t)) );
+					q = (q - t)/(constants::BASE - t);
+				
+				}
+				k += constants::BASE;
+			}
+
+			return result;
+		}
+
 		std::string encode_part( daw::range::CharRange input ) {
-			std::stringstream ss;
+			std::string output;
+			std::vector<uint32_t> non_basic;
+			
+			for( auto c : input ) {
+				if( c < 128 ) {
+					output += static_cast<char>( to_lower( c ) );
+				} else {
+					non_basic.push_back( c );
+				}
+			}
+
+			if( non_basic.empty( ) ) {
+				return output;
+			}
+
+
+			auto b = output.size( );
+			auto h = b;
+
+			if( !output.empty( )) {
+				output += constants::DELIMITER;
+			}
 
 			auto n = constants::INITIAL_N;
 			auto bias = constants::INITIAL_BIAS;
-			size_t delta = 0;
+			uint32_t delta = 0;
 
-			auto code_points = process_cp( input );
-			auto h = code_points.basic.size( );
-			auto b = code_points.basic.size( );
-			for( auto const & cp: code_points.basic ) {
-				ss << static_cast<char>( cp );
-			}
-			if( code_points.basic.size( ) == code_points.all.size( ) ) {
-				return ss.str( );
-			}
-			if( b > 0 ) {
-				ss << constants::DELIMITER;
-			}
-			code_points.non_basic = sort_uniq( code_points.non_basic.begin( ), code_points.non_basic.end( ) );
+			non_basic = sort_uniq( non_basic.begin( ), non_basic.end( ) );
 
-			auto non_basic_it = code_points.non_basic.begin( );
+			for( auto len = input.size( ); h < len; ++n, ++delta ) {
+				auto m = non_basic.back( );
+				non_basic.pop_back( );
 
-			auto length = code_points.all.size( );
-			while( h < length ) {
-				auto m = *(non_basic_it++);
-				delta += (m-n)*(h + 1);
+				delta += (m - n) * (h + 1);
 				n = m;
 
-				for( auto const & c : code_points.all ) {
-					if( c < n || c < constants::INITIAL_N ) {
-						++delta;
-					}
-					if( c == n ) {
-						auto q = delta;
-						for( auto k = constants::BASE;; k += constants::BASE ) {
-							auto const t = calculate_threshold( k, bias );
-							if( q < t ) {
-								break;
-							}
-							auto const code = t + ((q - t) % (constants::BASE -t));
-							ss << encode_table( code );
-
-							q = (q - t)/(constants::BASE -t);
-						}
-
-						ss << encode_table( q );
-						bias = adapt( delta, h + 1, (h == b) );
+				for( auto it = input.begin( ); it != (input.begin( ) + len); ++it ) {
+					if( *it < n && ++delta == 0 ) {
+						throw std::runtime_error( "delta overflow" );
+					} else if( *it == n ) {
+						output += encode_int( bias, delta );
+						bias = adapt( delta, h + 1, b == h );
 						delta = 0;
 						++h;
 					}
 				}
-				++delta;
-				++n;
 			}
-			std::string result= constants::PREFIX + ss.str( );
-			if( result.empty( ) || result.size( ) > 63 ) {
-				throw std::runtime_error( "The length of any one label is limited to between 1 and 63 octets" );
-			}
-			return result;
+			return constants::PREFIX + output;
 		}
 	}    // namespace anonymous
 
