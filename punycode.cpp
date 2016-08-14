@@ -89,15 +89,6 @@ namespace daw {
 			return k - bias;
 		}
 
-		char encode_table( uint32_t pos ) {
-			if( pos < 26 ) {
-				return 'a' + static_cast<char>(pos);
-			} else if ( pos < 36 ) {
-				return '0' + static_cast<char>(pos);
-			}
-			throw std::runtime_error( "Invalid character to encode" );
-		}
-
 		template<typename T>
 		auto encode_digit( T d ) {
 			if( d < 26 ) {
