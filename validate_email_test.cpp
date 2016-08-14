@@ -25,8 +25,47 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 
+#include <daw/json/daw_json_link.h>
+#include <daw/daw_memory_mapped_file.h>
+
 #include "validate_email.h"
 #include "punycode.h"
+
+struct address_test_t: public daw::json::JsonLink<address_test_t> {
+	std::string email_address;
+	std::string comment;
+
+	address_test_t( ):
+			daw::json::JsonLink<address_test_t>{ },
+			email_address{ },
+			comment{ } { 
+		
+		link_string( "email_address", email_address );
+		link_string( "comment", comment );
+	}
+};	// address_test_t
+
+struct config_file_t: public daw::json::JsonLink<config_file_t> {
+	std::vector<address_test_t> tests;
+
+	config_file_t( ):
+			daw::json::JsonLink<config_file_t>{ },
+			tests{ } {
+
+		link_array( "tests", tests );
+	}
+};	// config_file_t
+
+template<typename T>
+auto from_file( boost::string_ref filename ) {
+	daw::filesystem::MemoryMappedFile<char> test_data( filename );
+
+	T result;
+
+	result.decode( boost::string_ref( test_data.data( ), test_data.size( ) ) );
+
+	return result;
+}
 
 bool test_address( boost::string_ref address ) {
 	std::cout << "Testing: " << address.data( );
@@ -37,58 +76,17 @@ bool test_address( boost::string_ref address ) {
 
 BOOST_AUTO_TEST_CASE( good_email_test_001 ) {
 	std::cout << "Good email addresses\n";
-	BOOST_REQUIRE_MESSAGE( test_address( "test@example.com" ), "Basic test" );
-	BOOST_REQUIRE_MESSAGE( test_address( u8"test@Bücher.ch" ), "Valid IDN domain" );
-	BOOST_REQUIRE_MESSAGE( test_address( u8"\"@ test\"@Bücher.ch" ), "Quotes, @, and space in local plus IDN test" );
-	BOOST_REQUIRE_MESSAGE( test_address( "test@[127.0.0.1]" ), "Bracketed ip addrress" );
-	BOOST_REQUIRE_MESSAGE( test_address( "test@127.0.0.1" ), "ip addrress" );
-	BOOST_REQUIRE_MESSAGE( test_address( "test@8.8.8.8" ), "ip addrress" );
-	BOOST_REQUIRE_MESSAGE( test_address( "email@domain.com" ), "Valid email" );
-	BOOST_REQUIRE_MESSAGE( test_address( "firstname.lastname@domain.com" ), "Email contains dot in the address field" );
-	BOOST_REQUIRE_MESSAGE( test_address( "email@subdomain.domain.com" ), "Email contains dot with subdomain" );
-	BOOST_REQUIRE_MESSAGE( test_address( "firstname+lastname@domain.com" ), "Plus sign is considered valid character" );
-	BOOST_REQUIRE_MESSAGE( test_address( "email@123.123.123.123" ), "Domain is valid IP address" );
-	BOOST_REQUIRE_MESSAGE( test_address( "email@[123.123.123.123]" ), "Square bracket around IP address is considered valid" );
-	BOOST_REQUIRE_MESSAGE( test_address( "“email”@domain.com" ), "Quotes around email is considered valid" );
-	BOOST_REQUIRE_MESSAGE( test_address( "1234567890@domain.com" ), "Digits in address are valid" );
-	BOOST_REQUIRE_MESSAGE( test_address( "email@domain-one.com" ), "Dash in domain name is valid" );
-	BOOST_REQUIRE_MESSAGE( test_address( "_______@domain.com" ), "Underscore in the address field is valid" );
-	BOOST_REQUIRE_MESSAGE( test_address( "email@domain.co.jp" ), "Dot in Top Level Domain name also considered valid (use co.jp as example here)" );
-	BOOST_REQUIRE_MESSAGE( test_address( "firstname-lastname@domain.com" ), "Dash in address field is valid" );
-	BOOST_REQUIRE_MESSAGE( test_address( "あいうえお@domain.com" ), "Unicode char as address" );
-	BOOST_REQUIRE_MESSAGE( test_address( "Cheif.O'Brian@example.com" ), "Single quote" );
-	BOOST_REQUIRE_MESSAGE( test_address( "Abc@example.com" ), "normal" );
-	BOOST_REQUIRE_MESSAGE( test_address( "Abc.123@example.com" ), "dot in local part" );
-	BOOST_REQUIRE_MESSAGE( test_address( "user+mailbox/department=shipping@example.com" ), "plus and slash and equal in local" );
-	BOOST_REQUIRE_MESSAGE( test_address( "!#$%&'*+-/=?^_`.{|}~@example.com" ), "mix value symbols" );
-	BOOST_REQUIRE_MESSAGE( test_address( "\"Abc@def\"@example.com" ), "quoted" );
-	BOOST_REQUIRE_MESSAGE( test_address( "\"Fred Bloggs\"@example.com" ), "space in quotes" );
-	BOOST_REQUIRE_MESSAGE( test_address( "\"Joe.\\Blow\"@example.com" ), "backslash" );
-	BOOST_REQUIRE_MESSAGE( test_address( u8"test@快乐.中国" ), "Chinese" );
-
+	for( auto const & address : from_file<config_file_t>( "../good_addresses.json" ).tests ) {
+		BOOST_REQUIRE_MESSAGE( test_address( address.email_address ), address.comment );
+	}
 	std::cout << "\n" << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE( bad_email_test_001 ) {
 	std::cout << "Bad email addresses\n";
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain..com" ), "Double dot in domain" );
-	BOOST_REQUIRE_MESSAGE( !test_address( u8"test@افغانستا.icom.museum" ), "Non-Existant IDN Domain test" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "plainaddress" ), "Missing @ sign and domain" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "#@%^%#$@#$@#.com" ), "Garbage" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "@domain.com" ), "Missing username" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "Joe Smith <email@domain.com>" ), "Encoded html within email is invalid" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email.domain.com" ), "Missing @" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain@domain.com" ), "Two @ sign no quote" );
-	BOOST_REQUIRE_MESSAGE( !test_address( ".email@domain.com" ), "Leading dot in address is not allowed" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email.@domain.com" ), "Trailing dot in address is not allowed" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email..email@domain.com" ), "Multiple dots" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain.com (Joe Smith)" ), "Text followed email is not allowed" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain" ), "Missing top level domain (.com/.net/.org/etc)" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@-domain.com" ), "Leading dash in front of domain is invalid" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain.web" ), ".web is not a valid top level domain" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@111.222.333.44444" ), "Invalid IP format" );
-	BOOST_REQUIRE_MESSAGE( !test_address( "email@domain..com" ), "Multiple dot in the domain portion is invalid" );
-
+	for( auto const & address : from_file<config_file_t>( "../bad_addresses.json" ).tests ) {
+		BOOST_REQUIRE_MESSAGE( !test_address( address.email_address ), address.comment );
+	}
 	std::cout << "\n" << std::endl;
 }
 

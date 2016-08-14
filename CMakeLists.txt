@@ -4,7 +4,7 @@ project( validate_email_prj )
 
 include( ExternalProject )
 
-find_package( Boost 1.58.0 COMPONENTS system filesystem regex unit_test_framework REQUIRED )
+find_package( Boost 1.58.0 COMPONENTS system filesystem regex unit_test_framework iostreams REQUIRED )
 find_package( Threads )
 
 add_definitions( -DBOOST_TEST_DYN_LINK ) 
@@ -38,6 +38,16 @@ externalproject_add(
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install
 )
 
+externalproject_add(
+	parse_json_prj
+	GIT_REPOSITORY "https://github.com/beached/parse_json.git"
+	GIT_TAG "master"
+	SOURCE_DIR "${CMAKE_BINARY_DIR}/dependencies/parse_json"
+	INSTALL_DIR "${CMAKE_BINARY_DIR}/install"
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install
+)
+
+
 set( HEADER_FOLDER "include" )
 include_directories( ${HEADER_FOLDER} )
 
@@ -62,7 +72,7 @@ target_link_libraries( validate_email char_range ${Boost_LIBRARIES} )
 
 
 add_executable( validate_email_test_bin validate_email_test.cpp ${HEADER_FILES} )
-add_dependencies( validate_email_test_bin validate_email )
-target_link_libraries( validate_email_test_bin validate_email char_range ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+add_dependencies( validate_email_test_bin validate_email parse_json_prj )
+target_link_libraries( validate_email_test_bin validate_email parse_json char_range ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 add_test( validate_email_test, validate_email_test_bin )
 
