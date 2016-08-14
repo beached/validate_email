@@ -44,7 +44,7 @@ namespace daw {
 			if( satisfies_one( rng.begin( ), rng.end( ), in_range( 0, 31 ), equal_to( 127 ) ) ) {
 				return false;
 			}
-			if( *rng.begin( ) == '.' ) {
+			if( *rng.begin( ) == U'.' ) {
 				return false;
 			}
 			auto prev = U'\0';
@@ -69,12 +69,17 @@ namespace daw {
 				if( quote_count != 2 ) {
 					return false;
 				}
-				if( !(begins_with( rng, '\"' ) && ends_with( rng, '\"' )) ) {
-					return false;
+				auto first = *rng.begin( );
+				auto last = *(rng.begin( ) + rng.size( ) - 1);
+				auto second = *std::next( rng.begin( ) );
+				if( (begins_with( rng, U'\\' ) && ends_with( rng, U'\"' )) ) {
+					if( *std::next( rng.begin( ) ) != U'"' ) { 
+						return false;
+					}
 				}
 
 			} else {
-				if( begins_with( rng, '.' ) || ends_with( rng, '.' ) ) {
+				if( begins_with( rng, U'.' ) || ends_with( rng, U'.' ) ) {
 					return false;
 				}
 				for( auto c: rng ) {

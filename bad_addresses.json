@@ -13,6 +13,7 @@
 	{ "email_address": "email@domain.web", "comment": ".web is not a valid top level domain" },
 	{ "email_address": "email@111.222.333.44444", "comment": "Invalid IP format" },
 	{ "email_address": "email@domain..com", "comment": "Multiple dot in the domain portion is invalid" },
+	{ "email_address": "email.@domain.com", "comment": "Trailing dot in address is not allowed" },
 	{ "email_address": "email@domain@domain.com", "comment": "Two @ sign no quote" }
 ] }
 
