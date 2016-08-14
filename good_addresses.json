@@ -40,6 +40,6 @@
 	{ "email_address": "example-indeed@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
 	{ "email_address": "#!$%&'*+-/=?^_`{}|~@example.org", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
 	{ "email_address": "\\\"()<>[]:,;@\\\"!#$%&'-/=?^_`{}| ~.a\"@example.org", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
-	{ "email_address": "example@localhost", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{ "email_address": "example@localhost", "comment": "see https://en.wikipedia.org/wiki/Email_address" }
 ] }
 

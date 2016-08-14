@@ -96,17 +96,6 @@ bool test_puny( puny_tests_t::puny_test_t test_case ) {
 
 BOOST_AUTO_TEST_CASE( punycode_test ) {
 	using test_t = puny_tests_t::puny_test_t;
-	test_t t;
-	puny_tests_t x;
-	t.in = "\"test\"@example.com";
-	t.out = "comment";
-	x.tests.push_back( t );
-	std::cout << x.encode( ) << std::endl << std::endl;
-
-
-
-
-
 	std::cout << "PunyCode\n";
 	auto config_data = puny_tests_t{ }.decode_file( "../puny_tests.json" );
 	for( auto const & puny : config_data.tests ) {
