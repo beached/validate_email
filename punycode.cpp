@@ -46,14 +46,21 @@ namespace daw {
 			std::vector<uint32_t> basic;
 			std::vector<uint32_t> non_basic;
 		};	// processed_cp_t
+		
+		template<typename CP>
+		auto to_lower( CP cp ) {
+			return cp | 32;
+		}
 
 		processed_cp_t process_cp( daw::range::CharRange input ) {
 			processed_cp_t result{ };
-			for( auto const & cp : input ) {
-				result.all.push_back( cp );
+			for( auto cp : input ) {
 				if( cp < 128 ) {
+					cp = to_lower( cp );
+					result.all.push_back( cp );
 					result.basic.push_back( cp );
 				} else {
+					result.all.push_back( cp );
 					result.non_basic.push_back( cp );
 				}
 			}
