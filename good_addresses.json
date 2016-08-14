@@ -26,6 +26,22 @@
 	{ "email_address": "\"Abc@def\"@example.com", "comment": "quoted" },
 	{ "email_address": "\"Fred Bloggs\"@example.com", "comment": "space in quotes" },
 	{ "email_address": "\"Joe.\\Blow\"@example.com", "comment": "backslash" },
-	{ "email_address": "test@快乐.中国", "comment": "Chinese" }
+	{ "email_address": "email.@domain.com", "comment": "Trailing dot in address is not allowed" },
+	{ "email_address": "email..email@domain.com", "comment": "Multiple dots" },
+	{ "email_address": "#!$%&'*+-/=?^_`{}|~@example.org", "comment": "Lots of symbols" },
+	{ "email_address": "test@快乐.中国", "comment": "Chinese" },
+	{"email_address": "prettyandsimple@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "very.common@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "disposable.style.email.with+symbol@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "other.email-with-dash@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "x@example.com", "comment": "one letter local part, see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "\"much.more unusual\"@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "\"very.unusual.@.unusual.com\"@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "\"very.(),:;<>[]\".VERY.\"very@\\ \"very\".unusual\"@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "example-indeed@example.com", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "#!$%&'*+-/=?^_`{}|~@example.org", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "\"()<>[]:,;@\\\"!#$%&'-/=?^_`{}| ~.a\"@example.org", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "\" \"@example.org", "comment": "space between quotes, see https://en.wikipedia.org/wiki/Email_address" },
+	{"email_address": "example@localhost", "comment": "see https://en.wikipedia.org/wiki/Email_address" },
 ] }
 

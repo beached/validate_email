@@ -7,8 +7,6 @@
 	{ "email_address": "Joe Smith <email@domain.com>", "comment": "Encoded html within email is invalid" },
 	{ "email_address": "email.domain.com", "comment": "Missing @" },
 	{ "email_address": ".email@domain.com", "comment": "Leading dot in address is not allowed" },
-	{ "email_address": "email.@domain.com", "comment": "Trailing dot in address is not allowed" },
-	{ "email_address": "email..email@domain.com", "comment": "Multiple dots" },
 	{ "email_address": "email@domain.com (Joe Smith)", "comment": "Text followed email is not allowed" },
 	{ "email_address": "email@domain", "comment": "Missing top level domain (.com/.net/.org/etc)" },
 	{ "email_address": "email@-domain.com", "comment": "Leading dash in front of domain is invalid" },

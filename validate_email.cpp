@@ -44,6 +44,26 @@ namespace daw {
 			if( satisfies_one( rng.begin( ), rng.end( ), in_range( 0, 31 ), equal_to( 127 ) ) ) {
 				return false;
 			}
+			if( *rng.begin( ) == '.' ) {
+				return false;
+			}
+			auto prev = U'\0';
+			auto quote_count = std::accumulate( rng.begin( ), rng.end( ), 0, [&prev]( auto & init, auto c ) {
+				if( prev != U'\\' && c == U'"' ) {
+					prev = c;
+					return init + 1;
+				}
+				prev = c;
+				return init;
+			} );
+			if( quote_count != 0 ) {
+				if( quote_count != 2 ) {
+					return false;
+				}
+				if( *rng.raw_begin( ) != '\"' || *(rng.raw_end( ) - 1) != '\"' ) {
+					return false;
+				}
+			}
 			return true;
 		}
 
