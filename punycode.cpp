@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <future>
+
 #include <sstream>
 
 #include <daw/char_range/daw_char_range.h>
@@ -195,28 +195,20 @@ namespace daw {
 	}
 
 	std::string to_puny_code( boost::string_ref input ) {
-		std::vector<std::future<std::string>> workers;
-		auto parts = split( input, '.' );
-		for( auto const & part : parts ) {
-			workers.emplace_back( std::async( std::launch::async, [part]( ) {
-				if( part.empty( )) {
-					return std::string{ };
-				}
-				return encode_part( daw::range::create_char_range( part.begin( ), part.end( )));
-			} ));
-		}
 		std::stringstream ss;
-		// join the strings
+		auto parts = split( input, '.' );
 		bool is_first = true;
-		for( auto & wrk : workers ) {
+		for( auto const & part : parts ) {
 			if( !is_first ) {
 				ss << ".";
 			} else {
 				is_first = false;
 			}
-			ss << wrk.get( );
+			if( !part.empty( ) ) {
+				ss << encode_part( daw::range::create_char_range( part.begin( ), part.end( )));
+			}
 		}
 		return ss.str( );
 	}
-
 }    // namespace daw
+

@@ -100,20 +100,20 @@ BOOST_AUTO_TEST_CASE( punycode_test ) {
 	for( auto const & puny : config_data.tests ) {
 		BOOST_REQUIRE( test_puny( puny ) );
 	}
-	std::cout << "\n" << std::endl;
+	std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE( good_email_test ) {
-	std::cout << "Good email addresses\n";
+	std::cout << "\n\nGood email addresses\n";
 	auto config_data = address_tests_t{ }.decode_file( "../good_addresses.json" );
 	for( auto const & address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( test_address( address.email_address ), address.comment );
 	}
-	std::cout << "\n" << std::endl;
+	std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE( bad_email_test ) {
-	std::cout << "Bad email addresses\n";
+	std::cout << "\nBad email addresses\n";
 	auto config_data = address_tests_t{ }.decode_file( "../bad_addresses.json" );
 	for( auto const & address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( !test_address( address.email_address ), address.comment );
