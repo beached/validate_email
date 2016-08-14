@@ -2,7 +2,8 @@
 	{ "in": "example.com", "out": "example.com" },
 	{ "in": "Bücher.ch", "out": "xn--bcher-kva.ch" },
 	{ "in": "happy.cn", "out": "happy.cn" },
-	{ "in": "快乐.cn", "out": "xn--fjqz24b.cn " },
+	{ "in": "happy快乐.cn", "out": "xn--happy-9t1hs56h.cn" },
+	{ "in": "快乐.cn", "out": "xn--fjqz24b.cn" },
 	{ "in": "happy.中国", "out": "happy.xn--fiqs8s" },
 	{ "in": "快乐.中国", "out": "xn--fjqz24b.xn--fiqs8s" }
  ]}
