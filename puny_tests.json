@@ -1,0 +1,5 @@
+{ "tests": [
+	{ "in": "example.com", "out": "example.com" },
+	{ "in": "Bücher.ch", "out": "xn--bcher-kva.ch" },
+	{ "in": "快乐.中国", "out": "xn--fjqz24b.xn--fiqs8s" }
+ ]}
