@@ -37,18 +37,23 @@ namespace daw {
 			// These are the only invalid characters.  Beyond this
 			// the MTA has authority over whether it is valid or not
 			// TL;DR no control characters
-			if( rng.size( ) > 64 ) {
+
+			// Copy to a u32 string so that element access is O(1) not O(n)
+			std::u32string local_str;
+			std::copy( rng.begin( ), rng.end( ), std::back_inserter( local_str ) );
+			
+			if( local_str.size( ) > 64 || local_str.empty( ) ) {
 				return false;
 			}
 			using namespace daw::algorithm;
-			if( satisfies_one( rng.begin( ), rng.end( ), in_range( 0, 31 ), equal_to( 127 ) ) ) {
+			if( satisfies_one( local_str.begin( ), local_str.end( ), in_range( 0, 31 ), equal_to( 127 ) ) ) {
 				return false;
 			}
-			if( *rng.begin( ) == U'.' ) {
+			if( local_str.front( ) == U'.' ) {
 				return false;
 			}
 			auto prev = U'\0';
-			auto quote_count = std::accumulate( rng.begin( ), rng.end( ), 0, [&prev]( auto & init, auto c ) {
+			auto quote_count = std::accumulate( local_str.begin( ), local_str.end( ), static_cast<size_t>(0), [&prev]( auto & init, auto c ) {
 				if( prev != U'\\' && c == U'"' ) {
 					prev = c;
 					return init + 1;
@@ -57,32 +62,23 @@ namespace daw {
 				return init;
 			} );
 			
-			auto begins_with = []( daw::range::CharRange const & chr_rng, char value ) {
-				return *chr_rng.raw_begin( ) == value;	
-			};
-
-			auto ends_with = []( daw::range::CharRange const & chr_rng, char value ) {
-				return *(chr_rng.raw_end( ) - 1) == value;	
-			};
-
 			if( quote_count != 0 ) {
+				// Should only have 0 or 2 quotes(escaped quotes aren't counted)
 				if( quote_count != 2 ) {
 					return false;
 				}
-				auto first = *rng.begin( );
-				auto last = *(rng.begin( ) + rng.size( ) - 1);
-				auto second = *std::next( rng.begin( ) );
-				if( (begins_with( rng, U'\\' ) && ends_with( rng, U'\"' )) ) {
-					if( *std::next( rng.begin( ) ) != U'"' ) { 
-						return false;
-					}
+				// Surrounded with quotes \"....\" 
+				if( local_str.size( ) >= 3 && local_str[0] == U'\\' && local_str[1] == '"' && local_str.back( ) == U'"' ) {
+					return false;
 				}
 
 			} else {
-				if( begins_with( rng, U'.' ) || ends_with( rng, U'.' ) ) {
+				// Should not beging or end in a .
+				if( local_str[0] == U'.' || local_str.back( ) == U'.' ) {
 					return false;
 				}
-				for( auto c: rng ) {
+				// Cannot have @ if not within quotes on whole local
+				for( auto c: local_str ) {
 					if( c == U'@' ) {
 						return false;
 					}
