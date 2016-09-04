@@ -1,4 +1,3 @@
-#pragma once
 // The MIT License (MIT)
 //
 // Copyright (c) 2016 Darrell Wright
@@ -21,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+
+#pragma once
 
 #include <string>
 #include <boost/utility/string_ref.hpp>

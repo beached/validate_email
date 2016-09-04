@@ -21,11 +21,12 @@
 // SOFTWARE.
 //
 #include <cstdint>
-#include <daw/daw_algorithm.h>
-#include <daw/char_range/daw_char_range.h>
 #include <future>
 #include <thread>
 #include <boost/asio.hpp>
+
+#include <daw/daw_algorithm.h>
+#include <daw/char_range/daw_char_range.h>
 
 #include "punycode.h"
 #include "validate_email.h"
