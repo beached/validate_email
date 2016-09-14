@@ -27,8 +27,8 @@
 
 #include <daw/daw_algorithm.h>
 #include <daw/char_range/daw_char_range.h>
+#include <daw/puny_coder/puny_coder.h>
 
-#include "punycode.h"
 #include "validate_email.h"
 
 namespace daw {

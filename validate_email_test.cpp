@@ -26,9 +26,9 @@
 #include <iostream>
 
 #include <daw/json/daw_json_link.h>
+#include <daw/puny_coder/puny_coder.h>
 
 #include "validate_email.h"
-#include "punycode.h"
 
 struct address_tests_t: public daw::json::JsonLink<address_tests_t> {
 	struct address_test_t: public daw::json::JsonLink<address_test_t> {
@@ -85,22 +85,6 @@ bool test_address( boost::string_ref address ) {
 	std::cout << "Testing: " << address.data( );
 	std::cout << " Puny: " << daw::get_local_part( address ) << "@" << daw::to_puny_code( daw::get_domain_part( address ) ) << std::endl;
 	return daw::is_email_address( address );
-}
-
-bool test_puny( puny_tests_t::puny_test_t test_case ) {
-	std::cout << "Testing: " << test_case.in << " Expecting: " << test_case.out << " Got: ";
-	auto result = daw::to_puny_code( test_case.in );
-	std::cout << result << std::endl;
-	return result == test_case.out;
-}
-
-BOOST_AUTO_TEST_CASE( punycode_test ) {
-	std::cout << "PunyCode\n";
-	auto config_data = puny_tests_t{ }.decode_file( "../puny_tests.json" );
-	for( auto const & puny : config_data.tests ) {
-		BOOST_REQUIRE( test_puny( puny ) );
-	}
-	std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE( good_email_test ) {

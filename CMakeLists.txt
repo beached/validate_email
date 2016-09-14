@@ -47,16 +47,23 @@ externalproject_add(
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install
 )
 
+externalproject_add(
+	puny_coder_prj
+	GIT_REPOSITORY "https://github.com/beached/punycoder.git"
+	GIT_TAG "master"
+	SOURCE_DIR "${CMAKE_BINARY_DIR}/dependencies/puny_coder"
+	INSTALL_DIR "${CMAKE_BINARY_DIR}/install"
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install
+)
 
 set( HEADER_FOLDER "include" )
 include_directories( ${HEADER_FOLDER} )
 
 set( HEADER_FILES
-	${HEADER_FOLDER}/punycode.h
+	${HEADER_FOLDER}/validate_email.h
 )
 
 set( SOURCE_FILES
-	punycode.cpp
 	validate_email.cpp
  )
 
@@ -67,8 +74,8 @@ include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
 add_library( validate_email STATIC ${HEADER_FILES} ${SOURCE_FILES} )
-add_dependencies( validate_email header_libraries_prj char_range_prj )
-target_link_libraries( validate_email char_range ${Boost_LIBRARIES} )
+add_dependencies( validate_email header_libraries_prj char_range_prj puny_coder_prj )
+target_link_libraries( validate_email puny_coder char_range ${Boost_LIBRARIES} )
 
 
 add_executable( validate_email_test_bin validate_email_test.cpp ${HEADER_FILES} )
