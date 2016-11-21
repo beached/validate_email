@@ -22,6 +22,7 @@
 //
 #include <cstdint>
 #include <future>
+#include <numeric>
 #include <thread>
 #include <boost/asio.hpp>
 
@@ -111,17 +112,17 @@ namespace daw {
 		}
 	}	// namespace anonymous
 
-	boost::string_ref get_local_part( boost::string_ref email_address ) noexcept {
+	boost::string_view get_local_part( boost::string_view email_address ) noexcept {
 		auto amp_pos = email_address.find_last_of( '@' );
-		if( boost::string_ref::npos == amp_pos ) {
+		if( boost::string_view::npos == amp_pos ) {
 			return "";
 		}
 		return email_address.substr( 0, amp_pos );
 	}
 
-	boost::string_ref get_domain_part( boost::string_ref email_address ) noexcept {
+	boost::string_view get_domain_part( boost::string_view email_address ) noexcept {
 		auto amp_pos = email_address.find_last_of( '@' );
-		if( boost::string_ref::npos == amp_pos ) {
+		if( boost::string_view::npos == amp_pos ) {
 			return "";
 		}
 		auto result = email_address.substr( amp_pos + 1 );
@@ -138,7 +139,7 @@ namespace daw {
 		return result;
 	}
 
-	bool is_email_address( boost::string_ref email_address ) {
+	bool is_email_address( boost::string_view email_address ) {
 		auto local_str = get_local_part( email_address );
 		if( local_str.empty( ) ) {
 			return false;

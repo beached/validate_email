@@ -40,6 +40,30 @@ struct address_tests_t: public daw::json::JsonLink<address_tests_t> {
 				email_address{ },
 				comment{ } { 
 			
+			set_links( );
+		}
+
+		address_test_t( address_test_t const & other ):
+				daw::json::JsonLink<address_test_t>{ },
+				email_address{ other.email_address },
+				comment{ other.comment } { 
+			
+			set_links( );
+		}
+
+		address_test_t( address_test_t && other ):
+				daw::json::JsonLink<address_test_t>{ },
+				email_address{ std::move( other.email_address ) },
+				comment{ std::move( other.comment ) } { 
+			
+			set_links( );
+		}
+		~address_test_t( ) = default;
+		address_test_t & operator=( address_test_t const & ) = default;
+		address_test_t & operator=( address_test_t && ) = default;
+
+	private:
+		void set_links( ) {
 			link_string( "email_address", email_address );
 			link_string( "comment", comment );
 		}
@@ -54,6 +78,24 @@ struct address_tests_t: public daw::json::JsonLink<address_tests_t> {
 
 		link_array( "tests", tests );
 	}
+
+	address_tests_t( address_tests_t const & other ):
+			daw::json::JsonLink<address_tests_t>{ },
+			tests{ other.tests } {
+		
+		link_array( "tests", tests );
+	}
+
+	address_tests_t( address_tests_t && other ):
+			daw::json::JsonLink<address_tests_t>{ },
+			tests{ std::move( other.tests ) } {
+		
+		link_array( "tests", tests );
+	}
+
+	~address_tests_t( ) = default;
+	address_tests_t & operator=( address_tests_t const & ) = default;
+	address_tests_t & operator=( address_tests_t && ) = default;
 };	// address_tests_t
 
 struct puny_tests_t: public daw::json::JsonLink<puny_tests_t> {
@@ -66,6 +108,30 @@ struct puny_tests_t: public daw::json::JsonLink<puny_tests_t> {
 				in{ },
 				out{ } {
 
+			set_links( );
+		}
+
+		puny_test_t( puny_test_t const & other ):
+				daw::json::JsonLink<puny_test_t>{ },
+				in{ other.in },
+				out{ other.out } {
+
+			set_links( );
+		}
+
+		puny_test_t( puny_test_t && other ):
+				daw::json::JsonLink<puny_test_t>{ },
+				in{ std::move( other.in ) },
+				out{ std::move( other.out ) } {
+
+			set_links( );
+		}
+
+		puny_test_t & operator=( puny_test_t const & ) = default;
+		puny_test_t & operator=( puny_test_t && ) = default;
+		~puny_test_t( ) = default;
+	private:
+		void set_links( ) {
 			link_string( "in", in );
 			link_string( "out", out );
 		}
@@ -79,9 +145,27 @@ struct puny_tests_t: public daw::json::JsonLink<puny_tests_t> {
 
 		link_array( "tests", tests );
 	}
+
+	puny_tests_t( puny_tests_t const & other ):
+			daw::json::JsonLink<puny_tests_t>{ },
+			tests{ other.tests } {
+
+		link_array( "tests", tests );
+	}
+	
+	puny_tests_t( puny_tests_t && other ):
+			daw::json::JsonLink<puny_tests_t>{ },
+			tests{ std::move( other.tests ) } {
+
+		link_array( "tests", tests );
+	}
+		
+	puny_tests_t & operator=( puny_tests_t const & ) = default;
+	puny_tests_t & operator=( puny_tests_t && ) = default;
+	~puny_tests_t( ) = default;
 };	// puny_tests_t
 
-bool test_address( boost::string_ref address ) {
+bool test_address( boost::string_view address ) {
 	std::cout << "Testing: " << address.data( );
 	std::cout << " Puny: " << daw::get_local_part( address ) << "@" << daw::to_puny_code( daw::get_domain_part( address ) ) << std::endl;
 	return daw::is_email_address( address );
@@ -89,7 +173,7 @@ bool test_address( boost::string_ref address ) {
 
 BOOST_AUTO_TEST_CASE( good_email_test ) {
 	std::cout << "\n\nGood email addresses\n";
-	auto config_data = address_tests_t{ }.decode_file( "../good_addresses.json" );
+	auto config_data = address_tests_t{ }.from_file( "../good_addresses.json" );
 	for( auto const & address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( test_address( address.email_address ), address.comment );
 	}
@@ -98,7 +182,7 @@ BOOST_AUTO_TEST_CASE( good_email_test ) {
 
 BOOST_AUTO_TEST_CASE( bad_email_test ) {
 	std::cout << "\nBad email addresses\n";
-	auto config_data = address_tests_t{ }.decode_file( "../bad_addresses.json" );
+	auto config_data = address_tests_t{ }.from_file( "../bad_addresses.json" );
 	for( auto const & address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( !test_address( address.email_address ), address.comment );
 	}
