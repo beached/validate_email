@@ -22,9 +22,9 @@
 
 #define BOOST_TEST_MODULE validate_email
 
-#include <boost/test/unit_test.hpp>
 #include <iostream>
 
+#include <daw/boost_test.h>
 #include <daw/daw_string_view.h>
 #include <daw/json/daw_json_link.h>
 #include <daw/json/daw_json_link_file.h>
