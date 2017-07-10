@@ -26,8 +26,9 @@
 #include <thread>
 #include <boost/asio.hpp>
 
-#include <daw/daw_algorithm.h>
 #include <daw/char_range/daw_char_range.h>
+#include <daw/daw_algorithm.h>
+#include <daw/daw_string_view.h>
 #include <daw/puny_coder/puny_coder.h>
 
 #include "validate_email.h"
@@ -35,7 +36,8 @@
 namespace daw {
 	namespace {
 
-		auto is_local( daw::range::CharRange rng ) {
+		template<typename Range>
+		constexpr auto is_local( Range rng ) noexcept {
 			// These are the only invalid characters.  Beyond this
 			// the MTA has authority over whether it is valid or not
 			// TL;DR no control characters
@@ -101,7 +103,7 @@ namespace daw {
 		}
 
 		template<typename ForwardIterator, typename Value>
-		auto find_last( ForwardIterator first, ForwardIterator last, Value val ) {
+		constexpr auto find_last( ForwardIterator first, ForwardIterator last, Value val ) noexcept {
 			auto result = last; 
 			for( auto pos = first; pos != last; ++pos ) {
 				if( *pos == val ) {
@@ -112,17 +114,21 @@ namespace daw {
 		}
 	}	// namespace anonymous
 
-	boost::string_view get_local_part( boost::string_view email_address ) noexcept {
-		auto amp_pos = email_address.find_last_of( '@' );
-		if( boost::string_view::npos == amp_pos ) {
+	constexpr size_t find_amp_pos( daw::string_view email_address ) noexcept {
+		return email_address.find_last_of( '@' );
+	}
+
+	daw::string_view get_local_part( daw::string_view email_address ) noexcept {
+		auto amp_pos = find_amp_pos( email_address );
+		if( daw::string_view::npos == amp_pos ) {
 			return "";
 		}
 		return email_address.substr( 0, amp_pos );
 	}
 
-	boost::string_view get_domain_part( boost::string_view email_address ) noexcept {
-		auto amp_pos = email_address.find_last_of( '@' );
-		if( boost::string_view::npos == amp_pos ) {
+	daw::string_view get_domain_part( daw::string_view email_address ) noexcept {
+		auto amp_pos = find_amp_pos( email_address );
+		if( daw::string_view::npos == amp_pos ) {
 			return "";
 		}
 		auto result = email_address.substr( amp_pos + 1 );
@@ -139,7 +145,7 @@ namespace daw {
 		return result;
 	}
 
-	bool is_email_address( boost::string_view email_address ) {
+	bool is_email_address( daw::string_view email_address ) {
 		auto local_str = get_local_part( email_address );
 		if( local_str.empty( ) ) {
 			return false;
@@ -158,7 +164,9 @@ namespace daw {
 			return can_resolve( u_domain_str );
 		} );
 
-		return is_local( u_local_str ) && domain_good.get( );
+		auto const result1 = is_local( u_local_str );
+		auto const result2 = domain_good.get( );
+		return result1 && result2;
 	}
 }	// namespace daw
 

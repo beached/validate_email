@@ -23,11 +23,11 @@
 
 #pragma once
 
-#include <boost/utility/string_view.hpp>
+#include <daw/daw_string_view.h>
 
 namespace daw {
-	bool is_email_address( boost::string_view email_address );
-	boost::string_view get_local_part( boost::string_view email_address ) noexcept;
-	boost::string_view get_domain_part( boost::string_view email_address ) noexcept; 
+	bool is_email_address( daw::string_view email_address );
+	daw::string_view get_local_part( daw::string_view email_address ) noexcept;
+	daw::string_view get_domain_part( daw::string_view email_address ) noexcept; 
 }	// namespace daw
 
