@@ -32,8 +32,8 @@
 
 #include "validate_email.h"
 
-struct address_tests_t: public daw::json::daw_json_link<address_tests_t> {
-	struct address_test_t: public daw::json::daw_json_link<address_test_t> {
+struct address_tests_t : public daw::json::daw_json_link<address_tests_t> {
+	struct address_test_t : public daw::json::daw_json_link<address_test_t> {
 		std::string email_address;
 		std::string comment;
 
@@ -41,17 +41,17 @@ struct address_tests_t: public daw::json::daw_json_link<address_tests_t> {
 			link_json_string( "email_address", email_address );
 			link_json_string( "comment", comment );
 		}
-	};	// address_test_t
+	}; // address_test_t
 
 	std::vector<address_test_t> tests;
 
 	static void json_link_map( ) {
 		link_json_object_array( "tests", tests );
 	}
-};	// address_tests_t
+}; // address_tests_t
 
-struct puny_tests_t: public daw::json::daw_json_link<puny_tests_t> {
-	struct puny_test_t: public daw::json::daw_json_link<puny_test_t> {
+struct puny_tests_t : public daw::json::daw_json_link<puny_tests_t> {
+	struct puny_test_t : public daw::json::daw_json_link<puny_test_t> {
 		std::string in;
 		std::string out;
 
@@ -59,18 +59,19 @@ struct puny_tests_t: public daw::json::daw_json_link<puny_tests_t> {
 			link_json_string( "in", in );
 			link_json_string( "out", out );
 		}
-	};	// puny_test_t
+	}; // puny_test_t
 
 	std::vector<puny_test_t> tests;
 
 	static void json_link_map( ) {
 		link_json_object_array( "tests", tests );
 	}
-};	// puny_tests_t
+}; // puny_tests_t
 
 bool test_address( daw::string_view address ) {
 	std::cout << "Testing: " << address.data( );
-	std::cout << " Puny: " << daw::get_local_part( address ) << "@" << daw::to_puny_code( daw::get_domain_part( address ) ) << std::endl;
+	std::cout << " Puny: " << daw::get_local_part( address ) << "@"
+	          << daw::to_puny_code( daw::get_domain_part( address ) ) << std::endl;
 	auto result = daw::is_email_address( address );
 	return result;
 }
@@ -78,7 +79,7 @@ bool test_address( daw::string_view address ) {
 BOOST_AUTO_TEST_CASE( good_email_test ) {
 	std::cout << "\n\nGood email addresses\n";
 	auto config_data = daw::json::from_file<address_tests_t>( "../good_addresses.json" );
-	for( auto const & address : config_data.tests ) {
+	for( auto const &address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( test_address( address.email_address ), address.comment );
 	}
 	std::cout << std::endl;
@@ -87,10 +88,8 @@ BOOST_AUTO_TEST_CASE( good_email_test ) {
 BOOST_AUTO_TEST_CASE( bad_email_test ) {
 	std::cout << "\nBad email addresses\n";
 	auto config_data = daw::json::from_file<address_tests_t>( "../bad_addresses.json" );
-	for( auto const & address : config_data.tests ) {
+	for( auto const &address : config_data.tests ) {
 		BOOST_REQUIRE_MESSAGE( !test_address( address.email_address ), address.comment );
 	}
 	std::cout << "\n" << std::endl;
 }
-
-

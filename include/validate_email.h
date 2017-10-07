@@ -28,6 +28,5 @@
 namespace daw {
 	bool is_email_address( daw::string_view email_address );
 	daw::string_view get_local_part( daw::string_view email_address ) noexcept;
-	daw::string_view get_domain_part( daw::string_view email_address ) noexcept; 
-}	// namespace daw
-
+	daw::string_view get_domain_part( daw::string_view email_address ) noexcept;
+} // namespace daw

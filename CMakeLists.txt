@@ -7,6 +7,7 @@ include( ExternalProject )
 find_package( Boost 1.58.0 COMPONENTS system filesystem regex unit_test_framework iostreams REQUIRED )
 find_package( Threads )
 
+enable_testing( )
 add_definitions( -DBOOST_TEST_DYN_LINK ) 
 
 if( ${CMAKE_CXX_COMPILER_ID} STREQUAL 'MSVC' )
@@ -80,13 +81,15 @@ link_directories( "${CMAKE_BINARY_DIR}/install/lib" )
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
+add_custom_target( check COMMAND ${CMAKE_CTEST_COMMAND} )
+
 add_library( validate_email STATIC ${HEADER_FILES} ${SOURCE_FILES} )
 add_dependencies( validate_email header_libraries_prj char_range_prj puny_coder_prj )
 target_link_libraries( validate_email puny_coder char_range ${Boost_LIBRARIES} )
 
-
-add_executable( validate_email_test_bin ${TEST_FOLDER}/validate_email_test.cpp ${HEADER_FILES} )
+add_executable( validate_email_test_bin EXCLUDE_FROM_ALL ${TEST_FOLDER}/validate_email_test.cpp ${HEADER_FILES} )
 add_dependencies( validate_email_test_bin validate_email daw_json_link_prj )
 target_link_libraries( validate_email_test_bin validate_email char_range ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 add_test( validate_email_test, validate_email_test_bin )
+add_dependencies( check validate_email_test_bin )
 

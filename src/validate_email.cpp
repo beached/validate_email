@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+#include <boost/asio.hpp>
 #include <cstdint>
 #include <future>
 #include <numeric>
 #include <thread>
-#include <boost/asio.hpp>
 
 #include <daw/char_range/daw_char_range.h>
 #include <daw/daw_algorithm.h>
@@ -45,7 +45,7 @@ namespace daw {
 			// Copy to a u32 string so that element access is O(1) not O(n)
 			std::u32string local_str;
 			std::copy( rng.begin( ), rng.end( ), std::back_inserter( local_str ) );
-			
+
 			if( local_str.size( ) > 64 || local_str.empty( ) ) {
 				return false;
 			}
@@ -57,21 +57,22 @@ namespace daw {
 				return false;
 			}
 			auto prev = U'\0';
-			auto quote_count = std::accumulate( local_str.begin( ), local_str.end( ), static_cast<size_t>(0), [&prev]( auto & init, auto c ) {
-				if( prev != U'\\' && c == U'"' ) {
-					prev = c;
-					return init + 1;
-				}
-				prev = c;
-				return init;
-			} );
-			
+			auto quote_count =
+			  std::accumulate( local_str.begin( ), local_str.end( ), static_cast<size_t>( 0 ), [&prev]( auto &init, auto c ) {
+				  if( prev != U'\\' && c == U'"' ) {
+					  prev = c;
+					  return init + 1;
+				  }
+				  prev = c;
+				  return init;
+			  } );
+
 			if( quote_count != 0 ) {
 				// Should only have 0 or 2 quotes(escaped quotes aren't counted)
 				if( quote_count != 2 ) {
 					return false;
 				}
-				// Surrounded with quotes \"....\" 
+				// Surrounded with quotes \"....\"
 				if( local_str.size( ) >= 3 && local_str[0] == U'\\' && local_str[1] == '"' && local_str.back( ) == U'"' ) {
 					return false;
 				}
@@ -82,7 +83,7 @@ namespace daw {
 					return false;
 				}
 				// Cannot have @ if not within quotes on whole local
-				for( auto c: local_str ) {
+				for( auto c : local_str ) {
 					if( c == U'@' ) {
 						return false;
 					}
@@ -94,17 +95,17 @@ namespace daw {
 		auto can_resolve( daw::range::CharRange rng ) {
 			using namespace boost::asio;
 			io_service io_service;
-			ip::tcp::resolver resolver{ io_service };
+			ip::tcp::resolver resolver{io_service};
 			auto str_puny = daw::to_puny_code( std::string( rng.raw_begin( ), rng.raw_end( ) ) );
-			ip::tcp::resolver::query query{ str_puny, "" };
+			ip::tcp::resolver::query query{str_puny, ""};
 			boost::system::error_code ec;
 			auto result = resolver.resolve( query, ec );
-			return result != ip::tcp::resolver::iterator{ };
+			return result != ip::tcp::resolver::iterator{};
 		}
 
 		template<typename ForwardIterator, typename Value>
 		constexpr auto find_last( ForwardIterator first, ForwardIterator last, Value val ) noexcept {
-			auto result = last; 
+			auto result = last;
 			for( auto pos = first; pos != last; ++pos ) {
 				if( *pos == val ) {
 					result = pos;
@@ -112,7 +113,7 @@ namespace daw {
 			}
 			return result;
 		}
-	}	// namespace anonymous
+	} // namespace
 
 	constexpr size_t find_amp_pos( daw::string_view email_address ) noexcept {
 		return email_address.find_last_of( '@' );
@@ -134,9 +135,9 @@ namespace daw {
 		auto result = email_address.substr( amp_pos + 1 );
 		if( result.front( ) == '[' && result.back( ) == ']' ) {
 			result = result.substr( 1, result.size( ) - 2 );
-			// [127.0.0.1] is a valid domain, bracketed ip. 
+			// [127.0.0.1] is a valid domain, bracketed ip.
 			using namespace daw::algorithm;
-			for( auto const & c: result ) {
+			for( auto const &c : result ) {
 				if( !satisfies_one( c, in_range( '0', '9' ), equal_to( '.' ) ) ) {
 					return "";
 				}
@@ -160,13 +161,10 @@ namespace daw {
 		auto u_local_str = daw::range::create_char_range( local_str.begin( ), local_str.end( ) );
 		auto u_domain_str = daw::range::create_char_range( domain_str.begin( ), domain_str.end( ) );
 
-		auto domain_good = std::async( std::launch::async, [u_domain_str]( ) {
-			return can_resolve( u_domain_str );
-		} );
+		auto domain_good = std::async( std::launch::async, [u_domain_str]( ) { return can_resolve( u_domain_str ); } );
 
 		auto const result1 = is_local( u_local_str );
 		auto const result2 = domain_good.get( );
 		return result1 && result2;
 	}
-}	// namespace daw
-
+} // namespace daw
