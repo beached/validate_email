@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2016 Darrell Wright
+// Copyright (c) 2016-2017 Darrell Wright
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files( the "Software" ), to deal
@@ -37,7 +37,7 @@ namespace daw {
 	namespace {
 
 		template<typename Range>
-		constexpr auto is_local( Range rng ) noexcept {
+		constexpr bool is_local( Range rng ) noexcept {
 			// These are the only invalid characters.  Beyond this
 			// the MTA has authority over whether it is valid or not
 			// TL;DR no control characters
@@ -104,7 +104,7 @@ namespace daw {
 		}
 
 		template<typename ForwardIterator, typename Value>
-		constexpr auto find_last( ForwardIterator first, ForwardIterator last, Value val ) noexcept {
+		constexpr ForwardIterator find_last( ForwardIterator first, ForwardIterator last, Value val ) noexcept {
 			auto result = last;
 			for( auto pos = first; pos != last; ++pos ) {
 				if( *pos == val ) {
@@ -130,7 +130,7 @@ namespace daw {
 	daw::string_view get_domain_part( daw::string_view email_address ) noexcept {
 		auto amp_pos = find_amp_pos( email_address );
 		if( daw::string_view::npos == amp_pos ) {
-			return "";
+			return daw::string_view{};
 		}
 		auto result = email_address.substr( amp_pos + 1 );
 		if( result.front( ) == '[' && result.back( ) == ']' ) {
@@ -139,12 +139,14 @@ namespace daw {
 			using namespace daw::algorithm;
 			for( auto const &c : result ) {
 				if( !satisfies_one( c, in_range( '0', '9' ), equal_to( '.' ) ) ) {
-					return "";
+					return daw::string_view{};
 				}
 			}
 		}
 		return result;
 	}
+
+
 
 	bool is_email_address( daw::string_view email_address ) {
 		auto local_str = get_local_part( email_address );
