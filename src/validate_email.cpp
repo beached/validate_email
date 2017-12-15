@@ -49,8 +49,7 @@ namespace daw {
 			if( local_str.size( ) > 64 || local_str.empty( ) ) {
 				return false;
 			}
-			using namespace daw::algorithm;
-			if( satisfies_one( local_str.begin( ), local_str.end( ), in_range( 0, 31 ), equal_to( 127 ) ) ) {
+			if( daw::algorithm::satisfies_one( local_str.begin( ), local_str.end( ), daw::algorithm::in_range( 0, 31 ), daw::algorithm::equal_to( 127 ) ) ) {
 				return false;
 			}
 			if( local_str.front( ) == U'.' ) {
@@ -96,7 +95,7 @@ namespace daw {
 			using namespace boost::asio;
 			io_service io_service;
 			ip::tcp::resolver resolver{io_service};
-			auto str_puny = daw::to_puny_code( std::string( rng.raw_begin( ), rng.raw_end( ) ) );
+			auto str_puny = daw::to_puny_code( daw::make_string_view_it( rng.raw_begin( ), rng.raw_end( ) ) );
 			ip::tcp::resolver::query query{str_puny, ""};
 			boost::system::error_code ec;
 			auto result = resolver.resolve( query, ec );
@@ -122,7 +121,7 @@ namespace daw {
 	daw::string_view get_local_part( daw::string_view email_address ) noexcept {
 		auto amp_pos = find_amp_pos( email_address );
 		if( daw::string_view::npos == amp_pos ) {
-			return "";
+			return daw::string_view{};
 		}
 		return email_address.substr( 0, amp_pos );
 	}
