@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2016-2017 Darrell Wright
+// Copyright (c) 2016-2018 Darrell Wright
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files( the "Software" ), to deal
@@ -37,7 +37,7 @@ namespace daw {
 	namespace {
 
 		template<typename Range>
-		constexpr bool is_local( Range rng ) noexcept {
+		bool is_local( Range rng ) noexcept {
 			// These are the only invalid characters.  Beyond this
 			// the MTA has authority over whether it is valid or not
 			// TL;DR no control characters
@@ -145,8 +145,6 @@ namespace daw {
 		return result;
 	}
 
-
-
 	bool is_email_address( daw::string_view email_address ) {
 		auto local_str = get_local_part( email_address );
 		if( local_str.empty( ) ) {
@@ -169,3 +167,4 @@ namespace daw {
 		return result1 && result2;
 	}
 } // namespace daw
+
